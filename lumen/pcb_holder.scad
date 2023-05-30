@@ -1,9 +1,17 @@
 use <staging_plate.scad>
 
 /* Change to your board's dimensions: width, height, thickness */
-pcb_size = [150, 100, 1.6];
-pcb_holder(pcb_size = pcb_size, $fn = 20);
+pcb_size = [162.677, 70, 1.6];
+holderBorder = 4; //width of the piece that actually holds the board, 3 to 4 mm is enough
+holder_height = 4; //height of the tallest component on the underside.
 
+
+
+
+pcb_holder(pcb_size = pcb_size, $fn = 20);
+pcb_border = pcb_size-[holderBorder,holderBorder,0];
+
+//import("Sin nombre-birdchile.stl");
 
 module pcb_holder(
         pcb_size,
@@ -13,7 +21,7 @@ module pcb_holder(
         staging_plate_spacing = [30, 15],
         screw_diameter = 3.2,
         screw_head_diameter = 6.2,
-        screw_head_height = 3) {
+        screw_head_height = 3+holder_height) {
 
     staging_height = staging_height - pcb_size[2];
     frame_size = [pcb_size.x + lip_width * 2, pcb_size.y + lip_width * 2, staging_height + lip_height];
@@ -101,7 +109,7 @@ module __frame(frame_size, inset_amount) {
                     square([frame_size.x, frame_size.y]);
                     __center_cutout(frame_size = frame_size, inset_amount = inset_amount);
                 }
-                __all_sqs(frame_size);
+                    __all_sqs(frame_size);
             }
         }
     }
@@ -109,9 +117,18 @@ module __frame(frame_size, inset_amount) {
 
 module __pcb(pcb_size, frame_size, staging_height, lip_height) {
     pcb_position = [frame_size.x / 2 - pcb_size.x / 2, frame_size.y / 2 - pcb_size.y / 2, staging_height];
-    translate(pcb_position) {
-        linear_extrude(lip_height + 0.02) {
-            square([pcb_size.x, pcb_size.y]);
+    pcb_position2 = [frame_size.x / 2 - pcb_border.x / 2, frame_size.y / 2 - pcb_border.y / 2, staging_height-holder_height];
+    union()
+    {
+        translate(pcb_position) {
+            linear_extrude(lip_height + 0.02) {
+                square([pcb_size.x, pcb_size.y]);
+            }
+        }
+        translate(pcb_position2) {
+            linear_extrude(lip_height + holder_height+ 0.02) {
+                square([pcb_size.x-holderBorder, pcb_size.y-holderBorder]);
+            }
         }
     }
 }
